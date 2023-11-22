@@ -200,7 +200,9 @@ def avistamiento_cercano_mayor_duracion(avistamientos, coordenadas, radio=0.5):
 
 def avistamiento_cercano_mayor_duracion2(avistamientos, coordenadas, radio=0.5):
     # Por comprensión
-    pass
+    return max((a.duracion, a.comentarios) 
+               for a in avistamientos
+               if distancia_haversine(a.coordenadas, coordenadas) < radio)
 
 
 ### 3.3 Avistamientos producidos entre dos fechas
@@ -230,7 +232,13 @@ def avistamientos_fechas(avistamientos, fecha_inicial=None, fecha_final=None):
     @rtype: [Avistamiento(datetime, str, str, str, int, str, Coordenadas(float, float))]
     '''
     # Vamos a hacerlo directamente por comprensión
-    pass
+    filtrado = [a  for a in avistamientos
+                if (fecha_inicial == None or a.fechahora.date() >= fecha_inicial) and 
+                   (fecha_final == None or a.fechahora.date() <= fecha_final)
+    ]
+    
+    filtrado.sort(reverse=True)
+    return filtrado
     
 ### 3.4 Avistamiento de un año con el comentario más largo
 def comentario_mas_largo(avistamientos, anyo, palabra):
@@ -248,11 +256,16 @@ def comentario_mas_largo(avistamientos, anyo, palabra):
     @return: avistamiento con el comentario más largo
     @rtype: Avistamiento(datetime, str, str, str, int, str, Coordenadas(float, float))
     '''    
-    pass
+    filtrado = [a for a in avistamientos 
+                if a.fechahora.year == anyo and palabra in a.comentarios]
+    return max(filtrado, key = lambda a:len(a.comentarios))
     
 def comentario_mas_largo2(avistamientos, anyo, palabra):
     # Por comprensión
-    pass
+    return max(
+        (a for a in avistamientos if a.fechahora.year == anyo and palabra in a.comentarios),
+        key = lambda a:len(a.comentarios)
+    )
 
 
 ### 3.5 Media de días entre avistamientos consecutivos
@@ -274,9 +287,28 @@ def media_dias_entre_avistamientos(avistamientos, anyo=None):
     # Para calcular los días entre dos fechas, abre un terminal,
     # prueba a restar dos fechas de tipo date y observa el tipo
     # que obtienes.
-    pass
+    
+    if anyo != None:
+        avistamientos = [a for a in avistamientos if a.fechahora.year == anyo]
 
+    dias = calcula_dias_entre_avistamientos(avistamientos)
 
+    if len(dias) == 0:
+        return None
+    return sum(dias)/len(dias)
+
+def calcula_dias_entre_avistamientos(avistamientos):
+    '''Devuelve una lista de enteros con los días que transcurren
+    entre cada dos avistamientos consecutivos en el tiempo.'''
+    avistamientos = sorted(avistamientos)
+
+    res = []
+    for a1, a2 in zip(avistamientos, avistamientos[1:]):
+        res.append(
+            (a2.fechahora.date() - a1.fechahora.date()).days
+        )
+    return res
+        
 ## 4 Operaciones con diccionarios
 
 ### 4.1 Avistamientos por fecha
@@ -290,7 +322,10 @@ def avistamientos_por_fecha(avistamientos):
          y los valores son conjuntos con los avistamientos observados en esa fecha
     @rtype {datetime.date: {Avistamiento(datetime, str, str, str, int, str, Coordenadas(float, float))}}
     '''
-    pass
+    res = defaultdict(set)
+    for a in avistamientos:
+        res[a.fechahora.date()].add(a)
+    return res
 
 
 ### 4.2 Formas de avistamientos por mes
@@ -308,7 +343,13 @@ def formas_por_mes(avistamientos):
          y los valores son conjuntos con las formas observadas en cada mes
     @rtype {str: {str}}
     '''
-    pass
+    meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre",
+             "Octubre", "Noviembre", "Diciembre"]
+    res = defaultdict(set)
+    for a in avistamientos:
+        mes = meses[a.fechahora.month - 1]
+        res[mes].add(a.forma)
+    return res
 
 
 ### 4.3 Número de avistamientos por año
@@ -322,7 +363,7 @@ def numero_avistamientos_por_año(avistamientos):
          y los valores son el número de avistamientos observados en ese año
     @rtype: {int: int}
     '''
-    pass
+    return Counter(a.fechahora.year for a in avistamientos)
 
 
 ### 4.4 Número de avistamientos por mes del año
@@ -337,7 +378,9 @@ def num_avistamientos_por_mes(avistamientos):
          los valores son el número de avistamientos observados en ese mes
     @rtype: {str: int}
     '''
-    pass
+    meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre",
+             "Octubre", "Noviembre", "Diciembre"]
+    return Counter(meses[a.fechahora.month-1] for a in avistamientos)
 
 
 ### 4.5 Coordenadas con mayor número de avistamientos
@@ -356,8 +399,15 @@ def coordenadas_mas_avistamientos(avistamientos):
     @return: Coordenadas (sin decimales) que acumulan más avistamientos
     @rtype: Coordenadas(float, float)
     '''   
-    # Intenta primero descomponer el problema en subproblemas
-    pass
+    avistamientos_por_coordenadas = Counter(redondear(a.coordenadas) for a in avistamientos)
+    # most_common devuelve una LISTA de las tuplas (clave, valor), por lo que para quedarnos
+    # con la clave (el elemento más frecuente), debemos acceder primero al primer elemento
+    # de esa lista, y después al primer elemento de la tupla (la clave)
+    return avistamientos_por_coordenadas.most_common(1)[0][0]
+
+    # Como Counter es un diccionario, también podemos buscar el máximo de los items
+    # pidiéndole a max que se fije en los conteos (Segundo elemento de los items)
+    return max(avistamientos_por_coordenadas.items(), key = lambda t:t[1])[0]
 
 
 ### 4.6 Hora del día con mayor número de avistamientos
