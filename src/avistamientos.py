@@ -427,9 +427,9 @@ def hora_mas_avistamientos(avistamientos):
     del elemento.
     '''
     #  TODO: Para casa
-    pass
-
-
+    avistamientos_por_hora = Counter(a.fechahora.hour for a in avistamientos)
+    return max(avistamientos_por_hora.items(), key = lambda t:t[1])[0]
+    return avistamientos_por_hora.most_common(1)[0][0]
 
 ### 4.7 Longitud media de los comentarios por estado
 
@@ -446,8 +446,19 @@ def longitud_media_comentarios_por_estado(avistamientos):
     @rtype: {str: float}
     '''
     # Intenta primero descomponer el problema en subproblemas
-    pass
-
+    # Agrupar los comentarios por estado
+    comentarios_por_estado = defaultdict(list)
+    for a in avistamientos:
+        comentarios_por_estado[a.estado].append(len(a.comentarios))
+    
+    # Diccionario que voy a devolver
+    res = {}
+    # Recorrer el diccionario anterior
+    for estado, lista_tam_comentarios in comentarios_por_estado.items():
+        # Calcular la media del tamaño de los comentarios
+        # en lista_comentarios
+        res[estado] = sum(lista_tam_comentarios) / len(lista_tam_comentarios)
+    return res
 
 
 ### 4.8 Porcentaje de avistamientos por forma
@@ -468,6 +479,7 @@ def porc_avistamientos_por_forma(avistamientos):
     resulten de dividir los valores del diccionario anterior por el número
     total de avistamientos, para obtener los porcentajes.
     '''  
+    # TODO: para casa
     pass
 
 
@@ -530,6 +542,7 @@ def estados_mas_avistamientos(avistamientos, n=5):
          del número de avistamientos y con un máximo de "limite" estados.
     @rtype: [(str, int)]
     '''
+    # TODO: Para casa
     pass
 
       
@@ -552,6 +565,7 @@ def duracion_total_avistamientos_año(avistamientos, estado):
     y cuyos valores sean la suma de las duraciones de todos los avistamientos
     observados en ese año.
     '''
+    # TODO: para casa
     pass
 
 
@@ -573,4 +587,5 @@ def avistamiento_mas_reciente_por_estado(avistamientos):
     Después crearemos un segundo diccionario cuyas claves sean los estados y
     cuyos valores sean los valores máximos de las listas, según el campo fechahora.
     '''
+    # TODO: para casa
     pass
